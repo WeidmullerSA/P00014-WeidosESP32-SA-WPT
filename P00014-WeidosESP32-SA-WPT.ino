@@ -16,7 +16,7 @@
 /**
  * @file WeidosESP32-WasteProcessing.ino
  *
- * @brief This sketch is Waste Processing Demo
+ * @brief This sketch is Waste Processing Technologies Demo
  *
  * @author Daniela Zaffalon.
  * Contact: daniela.zaffalon@weidmueller.com
@@ -25,6 +25,7 @@
 #include "src/wifiConnection/wifiConnection.h"
 #include <SPI.h>
 #include <MFRC522.h>
+#include "src/display/lcdTaskCode.h"
 
 extern int actualUserID;
 extern User users[2];
@@ -58,7 +59,7 @@ int processSwitchState = 0;
 byte userID[] = {0x00,0x00,0x00,0x00};
 
 void startISR() {
-   if(processSwitchState == 3 || processSwitchState == 4) startButtonState = true;
+   if(processSwitchState == 2 || processSwitchState == 3 || processSwitchState == 4) startButtonState = true;
 }
 
 void stopISR() {
@@ -91,6 +92,7 @@ void setup(){
     SPI.begin();
 	mfrc522.PCD_Init();
 	delay(4);
+    lcdSwitchState = 3;
 }
 
 void loop(){
@@ -98,7 +100,7 @@ void loop(){
     bool doorSensorState = digitalRead(doorSensor);
     int loadCellValue = analogRead(loadCell);
     bool fullButtonState = digitalRead(fullSensor);
-    if(WiFi.status() != WL_CONNECTED) wifiConnect();
+    // if(WiFi.status() != WL_CONNECTED) wifiConnect();
 	
     switch (processSwitchState){
         case 0: // Waiting for RFID CARD
@@ -110,11 +112,11 @@ void loop(){
                 processSwitchState = 1;
             }
         break;
-        case 1: // RFID Validation
+        case 1: // RFID VALIDATION
             if (mfrc522.PICC_ReadCardSerial() ) {
                 obtainUserID(mfrc522.uid.uidByte, mfrc522.uid.size, userID);
                 delay(2000);
-                if(validateID(userID[3])) {
+                if(validateID(userID[0])) {
                     processSwitchState = 3;
                     lcdSwitchState = 5;
                 }
@@ -129,11 +131,12 @@ void loop(){
                 lcdSwitchState = 3;
             }
             break;
-        case 2: //Invalid User
-            delay(2000);
-            digitalWrite(redLed,LOW);
-            lcdSwitchState = 3;
-            processSwitchState = 0;
+        case 2: //INVALID USER
+            if(startButtonState){
+                digitalWrite(redLed,LOW);
+                lcdSwitchState = 3;
+                processSwitchState = 0;
+            }
             break;
         case 3:
             delay(2000);
@@ -143,7 +146,7 @@ void loop(){
             processSwitchState = 4;
             startTime = millis();
             break;
-        case 4:  // Valid User
+        case 4:  // VALID USER
             if(doorSensorState && startButtonState){
                 loadCellVoltage = loadCellValue*10.0f/4095;
                 lcdSwitchState = 8; 
@@ -173,7 +176,7 @@ void loop(){
                 startButtonState = false;
             }  
             break;
-        case 5: // Weighing
+        case 5: // WEIGHING
             if(actualTime-startTime >= delayTime){
                 processSwitchState = 6;
                 digitalWrite(motor, HIGH);
@@ -190,7 +193,7 @@ void loop(){
                 lcdSwitchState = 12;
             }
             break;
-        case 7: // End process summary and start again
+        case 7: // PROCESS END
             delay(5000);
             processSwitchState = 0;
             lcdSwitchState = 3;
@@ -246,7 +249,9 @@ void loop(){
 void obtainUserID(byte* buffer, byte bufferSize, byte* userID) {
   for (byte i = 0; i < bufferSize; i++) {
     userID[i] = buffer[i];
+    Serial.printf("%02x ",userID[i]);
   }
+  Serial.println();
 }
 
 bool validateID(byte id){

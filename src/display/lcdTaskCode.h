@@ -1,6 +1,7 @@
-#include "../users/users.h"
 #include <Wire.h>
 #include <DFRobot_RGBLCD1602.h>
+#include "../users/users.h"
+
 
 #ifndef LCDTASKCODE_H
 #define LCDTASKCODE_H

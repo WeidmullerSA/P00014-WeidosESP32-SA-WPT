@@ -5,10 +5,10 @@ TaskHandle_t lcdTask;
 
 int lcdSwitchState;
 float loadCellVoltage;
-IPAddress wifiIP;
+// IPAddress wifiIP;
 
-User user1(0xA8, "John", "Doe");
-User user2(0x90, "Jane", "Doe");
+User user1(0x43, "John", "Doe");
+User user2(0x63, "Jane", "Doe");
 User users[2] = {user1,user2}; // A8= tarjeta
 int actualUserID = 100;
 
@@ -36,7 +36,7 @@ void lcdTaskcode( void * parameter){
                 lcd.setBacklight(true);
                 lcd.clear();
                 lcd.print("Wifi Connected with IP: ");
-                lcd.print(wifiIP);
+                // lcd.print(wifiIP);
                 for (int positionCounter = 0; positionCounter < 40; positionCounter++) {
                     lcd.scrollDisplayLeft();
                     delay(400);
@@ -74,6 +74,9 @@ void lcdTaskcode( void * parameter){
                 lcd.clear();
                 lcd.setCursor(2,0);
                 lcd.print("Invalid User");
+                delay(2000);
+                lcd.setCursor(0,1);
+                lcd.print("press Start");
             break;
             case 7:
                 lcdSwitchState = 0;

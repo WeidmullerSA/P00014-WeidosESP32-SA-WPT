@@ -1,4 +1,5 @@
 #include "wifiConnection.h"
+#include "../display/lcdTaskCode.h"
 
 const char *WIFI_SSID = SSID;
 const char *WIFI_PASS = PASS;
